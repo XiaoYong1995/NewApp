@@ -1,0 +1,231 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, initial-scale=1.0, width=device-width" />
+    <meta name="format-detection" content="telephone=no, email=no, date=no, address=no">
+    <title>首页</title>
+    <link rel="stylesheet" type="text/css" href="css/aui.css" />
+    <link rel="stylesheet" type="text/css" href="css/api.css" />
+    <link rel="stylesheet" type="text/css" href="css/box.css" />
+    <script type="text/javascript" src="public.js"></script>
+    <script type="text/javascript" src="script/api.js"></script>
+    <style>
+        #footer {
+            width: 100%;
+            height: 50px;
+            position: fixed;
+            bottom: 0;
+            padding: 0 8px;
+            display: -webkit-box;
+            -webkit-box-orient: horizontal;
+            background-color: #2B99FF;
+            border-color: #2B99FF;
+        }
+
+        .tab-item {
+            height: 50px;
+            -webkit-box-flex: 1;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-box-pack: center;
+            -webkit-box-align: center;
+        }
+
+        center {
+            color: #FFF;
+            margin-top: 3px;
+            font-size: 0.7em;
+        }
+
+        #back>div {
+            width: 48px;
+            height: 48px;
+            background: url(image/ic_back.png) no-repeat center;
+            background-size: 30px 30px;
+        }
+
+        #forward>div {
+            width: 48px;
+            height: 48px;
+            background: url(image/ic_forward.png) no-repeat center;
+            background-size: 30px 30px;
+        }
+
+        #refresh>div {
+            width: 48px;
+            height: 48px;
+            background: url(image/ic_refresh.png) no-repeat center;
+            background-size: 30px 30px;
+        }
+
+        .active {
+            background-color: #33B5E5;
+        }
+
+        .text {
+            color: #FFF;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrap">
+        <!--<header class="aui-bar aui-bar-nav aui-bar-light" >
+            <div class="aui-pull-left aui-btn" onclick="GoToHisBack()">
+                <span class="aui-iconfont aui-icon-left"></span>返回
+            </div>
+            <div class="aui-title">Title</div>
+        </header>-->
+        <header id='title'  class="aui-bar aui-bar-nav" style="margin-top:24px;">顶部导航栏</header>
+        <div id="main">
+            <br>
+            <lable>内置浏览器模块，Android平台使用腾讯X5引擎提供服务，IOS平台使用WKWebview提供服务</lable><br>
+            <div class='itemtitle'>1、打开内置浏览器</div>
+            <lable>输入即将预览的Url</lable><br>
+            <input type="text" id="iurl" value="http://www.56news.cn:83/Mobile/World.html" /><br>
+            <div class="clickbtn" tapmode="active" onclick="showBrowserView()">以UI视图模块的方式打开</div>
+            <div class="clickbtn" tapmode="active" onclick="showBrowser()">以独立Browser方式打开</div>
+            <br>
+        </div>
+        <!--<div id='footer'>
+            <div id='back' class='tab-item' tapmode='active' onclick='GoToHisBack()'>
+                <div></div>
+            </div>
+            <div id='forward' class='tab-item' tapmode='active' onclick='GoToHisForward()'>
+                <div></div>
+            </div>
+            <div id='refresh' class='tab-item' tapmode='active' onclick='GoToRefresh()'>
+                <div></div>
+            </div>
+            <div id='头条' class='tab-item' tapmode='active' onclick='GoToHome()'>
+                <div class='text'>首页</div>
+            </div>
+        </div>-->
+    </div>
+</body>
+<script type="text/javascript">
+    var home = "http://www.56news.cn:83/Mobile/World.html";
+    var isViewOpened = false;
+    var X5broser = null;
+
+    apiready = function() {
+        X5broser = api.require('webBrowser');
+        api.addEventListener({
+            name: 'keyback'
+        }, function(ret, err) {
+            api.closeWidget();
+        });
+
+        showBrowserView()
+    };
+
+    function showBrowser() {
+        var iurl = $('iurl').value;
+        //iurl = 'index_frm.html';
+        X5broser.open({
+            url: iurl,
+            /*progress:{
+            	color:'#F0F'
+            },
+            titleBar:{
+            	visible:true,
+            	bg:'#FF0',
+            	textColor:'#00F'
+            }*/
+        }, function(ret) {
+            console.log(JSON.stringify(ret));
+        });
+    }
+
+    function showBrowserView() {
+        isViewOpened = true;
+        var iurl = $('iurl').value;
+        X5broser.openView({
+            url: iurl,
+            rect: {
+                marginTop: 69,1`
+                marginBottom: 0
+            },
+            progress: {
+                color: '#0FD76A'
+            }
+        }, onBroserStateChange);
+    }
+
+    function closeBrowserView() {
+        isViewOpened = false;
+        X5broser.closeView();
+        $('title').innerHTML = '基于腾讯X5/WKWebview的浏览器';
+    }
+
+    function onBroserStateChange(ret) {
+        if (0 == ret.state) { //BrowserView开始加载
+            var url = ret.url;
+            console.log('BrowserView loading start: ' + url);
+        } else if (1 == ret.state) { //BrowserView加载进度发生变化
+            var p = ret.progress;
+            console.log('BrowserView loading: ' + p);
+        } else if (2 == ret.state) { //BrowserView结束加载
+            var url = ret.url;
+            console.log('BrowserView loading finish: ' + url);
+        } else if (3 == ret.state) { //BrowserView标题发生变化
+            $('title').innerHTML = ret.title;
+        }
+    }
+
+    function GoToHisBack() {
+        if (!isViewOpened) {
+            api.toast({
+                msg: '还未openView！'
+            });
+            return;
+        }
+        X5broser.historyBack(function(ret) {
+            if (!ret.status) {
+                closeBrowserView();
+            }
+        });
+    }
+
+    function GoToHisForward() {
+        if (!isViewOpened) {
+            api.toast({
+                msg: '还未openView！'
+            });
+            return;
+        }
+        X5broser.historyForward(function(ret) {
+            if (!ret.status) {
+                api.closeWin();
+            }
+        });
+    }
+
+    function GoToRefresh() {
+        if (!isViewOpened) {
+            api.toast({
+                msg: '还未openView！'
+            });
+            return;
+        }
+        X5broser.loadScript({
+            script: 'location.reload();'
+        });
+    }
+
+    function GoToHome() {
+        if (!isViewOpened) {
+            api.toast({
+                msg: '还未openView！'
+            });
+            return;
+        }
+        X5broser.loadUrl({
+            url: home
+        });
+    }
+</script>
+
+</html>
